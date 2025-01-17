@@ -4,4 +4,4 @@ ARG CUSTOM_MODULES
 USER root
 RUN npm install -g ${CUSTOM_MODULES}
 USER node
-CMD [ "n8n","start" ]
+CMD ["start" ]
