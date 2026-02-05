@@ -1,27 +1,25 @@
-# Stage 1: get apk + its libs from Alpine
-FROM alpine:3.20 AS alpine
-RUN apk add --no-cache apk-tools
+# Stage 1: build fonts + cache in Alpine
+FROM alpine:3.20 AS fonts
+RUN apk add --no-cache fontconfig ttf-dejavu ttf-liberation
 
-# Stage 2: your n8n image
+# your custom fonts from repo
+COPY fonts/ /usr/local/share/fonts/
+RUN fc-cache -f -v
+
+# Stage 2: final n8n image
 FROM docker.n8n.io/n8nio/n8n:2.6.3
 
 USER root
 
-# Copy apk and required libs
-COPY --from=alpine /sbin/apk /sbin/apk
-COPY --from=alpine /usr/lib/libapk.so* /usr/lib/
+# Copy fonts and fontconfig cache from Alpine stage
+COPY --from=fonts /usr/share/fonts /usr/share/fonts
+COPY --from=fonts /usr/local/share/fonts /usr/local/share/fonts
+COPY --from=fonts /etc/fonts /etc/fonts
+COPY --from=fonts /var/cache/fontconfig /var/cache/fontconfig
 
-# Install fonts
-RUN apk add --no-cache \
-      fontconfig \
-      ttf-dejavu \
-      ttf-liberation
+RUN chown -R node:node /usr/share/fonts /usr/local/share/fonts /var/cache/fontconfig || true
 
-# Copy your custom fonts and rebuild cache
-COPY fonts/ /usr/local/share/fonts/
-RUN fc-cache -f -v && chown -R node:node /usr/local/share/fonts
-
-# Optional global modules
+# Keep your existing global modules line (safe if empty)
 ARG CUSTOM_MODULES
 RUN if [ -n "$CUSTOM_MODULES" ]; then npm install -g $CUSTOM_MODULES; fi
 
