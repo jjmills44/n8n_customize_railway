@@ -7,7 +7,7 @@ COPY fonts/ /usr/local/share/fonts/
 RUN fc-cache -f -v
 
 # Stage 2: final n8n image
-FROM docker.n8n.io/n8nio/n8n:2.6.3
+FROM docker.n8n.io/n8nio/n8n:2.17.4
 
 USER root
 
